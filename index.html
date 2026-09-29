@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Тренажер: Тепловое равновесие</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- KaTeX for Math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Mobile optimizations */
+        button, select, label { touch-action: manipulation; }
+        .math-scroll { overflow-x: auto; padding-bottom: 4px; max-width: 100%; display: block; }
+        .math-scroll::-webkit-scrollbar { height: 4px; }
+        .math-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .math-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen pb-12">
+
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center w-[65%] sm:w-auto">
+                    <svg class="w-7 h-7 sm:w-8 sm:h-8 mr-2 sm:mr-3 text-indigo-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <span class="font-bold text-sm sm:text-lg md:text-xl tracking-tight truncate" id="ui-title">Тренажер: Тепловое равновесие</span>
+                </div>
+                <div class="flex bg-indigo-800/50 p-1 rounded-lg flex-shrink-0">
+                    <button id="lang-ru" onclick="setLang('ru')" class="px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors bg-white text-indigo-700 shadow">РУС</button>
+                    <button id="lang-kk" onclick="setLang('kk')" class="px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors text-indigo-100 hover:text-white">ҚАЗ</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Toast Notification instead of alert() -->
+    <div id="toast" class="fixed top-20 right-4 sm:right-8 z-50 px-5 py-3 rounded-lg shadow-lg font-medium transition-opacity duration-300 opacity-0 hidden pointer-events-none"></div>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-6 sm:mt-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+            
+            <!-- Left Column: Theory & Constants -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Theory Box -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="bg-slate-50 border-b border-slate-100 px-4 sm:px-5 py-3.5 sm:py-4">
+                        <h2 class="font-bold text-slate-700 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                            <span id="ui-theoryTitle">Теория и формулы</span>
+                        </h2>
+                    </div>
+                    <div class="p-4 sm:p-5 text-sm text-slate-600 leading-relaxed">
+                        <p class="mb-3" id="ui-theoryText">Количество теплоты, отданное более нагретыми телами, равно количеству теплоты, полученному менее нагретыми телами:</p>
+                        <div class="bg-indigo-50 text-indigo-900 rounded-lg p-3 text-center mb-4 font-medium math-scroll">
+                            \( Q_{\text{отд}} = Q_{\text{пол}} \)
+                        </div>
+                        <ul class="list-disc pl-5 space-y-1.5" id="ui-theoryList">
+                            <li>\( Q = cm(t_2 - t_1) \) — нагревание</li>
+                            <li>\( Q = cm(t_1 - t_2) \) — охлаждение</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Constants Box -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="bg-slate-50 border-b border-slate-100 px-4 sm:px-5 py-3.5 sm:py-4">
+                        <h2 class="font-bold text-slate-700 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                            <span id="ui-constantsTitle">Справочник c, Дж/(кг·°C)</span>
+                        </h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3" id="ui-constCol1">Вещество</th>
+                                    <th scope="col" class="px-4 py-3 text-right">c</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="ui-constantsBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Practice -->
+            <div class="lg:col-span-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 md:p-8">
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-5 sm:mb-6 pb-4 border-b border-slate-100 gap-3 sm:gap-4">
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+                            </span>
+                            <span id="ui-practiceTitle">Практика: Пошаговое решение</span>
+                        </h2>
+                        <div class="bg-indigo-50 text-indigo-700 font-semibold px-4 py-1.5 rounded-full text-sm shadow-inner self-start sm:self-auto" id="task-counter">
+                            Задача 1
+                        </div>
+                    </div>
+
+                    <!-- Task Text -->
+                    <div class="bg-indigo-50/60 rounded-xl p-4 sm:p-5 mb-6 sm:mb-8 text-slate-700 text-base sm:text-lg leading-relaxed shadow-inner border border-indigo-100/50" id="task-text"></div>
+
+                    <!-- Steps Container -->
+                    <div id="guided-steps-container" class="space-y-4 mb-6 sm:mb-8"></div>
+
+                    <!-- Next Task / Solution Container -->
+                    <div id="next-task-container" class="hidden flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 fade-in">
+                        <button onclick="generateNewTask()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 sm:px-6 py-3.5 rounded-xl shadow-sm transition-all text-base sm:text-lg flex items-center justify-center gap-2 transform hover:-translate-y-0.5 hover:shadow-md active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span id="ui-nextTaskBtn">Следующая задача</span>
+                        </button>
+                        
+                        <button onclick="toggleSolution()" id="btn-solution" class="sm:flex-none bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-5 sm:px-6 py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span id="ui-showSolution">Показать решение</span>
+                        </button>
+                    </div>
+
+                    <!-- Full Solution Box -->
+                    <div id="solution-box" class="hidden mt-6 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-6 fade-in overflow-hidden">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            <span id="ui-solutionTitle">Полное решение:</span>
+                        </h3>
+                        <div id="solution-text" class="text-slate-700 leading-relaxed space-y-2 text-sm sm:text-base math-scroll"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const materials = {
+            water: { c: 4200 },
+            aluminum: { c: 920 },
+            iron: { c: 460 },
+            copper: { c: 400 }
+        };
+
+        const i18n = {
+            ru: {
+                title: "Тренажер: Тепловое равновесие (8 класс)",
+                theoryTitle: "Теория и формулы",
+                theoryText: "Количество теплоты, отданное более нагретыми телами, равно количеству теплоты, полученному менее нагретыми телами:",
+                theoryList1: "\\( Q = cm(t_2 - t_1) \\) — нагревание",
+                theoryList2: "\\( Q = cm(t_1 - t_2) \\) — охлаждение",
+                constTitle: "Справочник c, Дж/(кг·°C)",
+                constCol1: "Вещество",
+                substances: { water: "Вода", aluminum: "Алюминий", iron: "Железо", copper: "Медь" },
+                practiceTitle: "Практика: Пошаговое решение",
+                taskPrefix: "Задача",
+                nextTaskBtn: "Следующая задача",
+                showSolution: "Показать решение",
+                hideSolution: "Скрыть решение",
+                solutionTitle: "Полное решение:",
+                stepPrompt: "ЭТАП",
+                checkBtn: "Проверить ответ",
+                selectOption: "-- Выберите --",
+                correctMsg: "Верно! Переходим к следующему этапу.",
+                incorrectMsg: "Ошибка. Подумайте еще раз!",
+                step1Title: "Анализ условия",
+                step1Q: "Внимательно прочитайте задачу. Какие величины нам ДАНЫ, а какую нужно НАЙТИ? Отметьте их галочками (остальное - лишнее).",
+                step2Title: "Запись «Дано»",
+                step2Q: "Сопоставьте числовые значения из задачи с их физическими обозначениями:",
+                step3Title: "Выбор формулы",
+                step3Q: "Выберите правильное уравнение теплового баланса (\\( Q_{\\text{отд}} = Q_{\\text{пол}} \\)):",
+                step4Title: "Вычисление",
+                step4Q: "Подставьте значения в формулу, вычислите и выберите правильный ответ:"
+            },
+            kk: {
+                title: "Тренажер: Жылулық тепе-теңдік (8 сынып)",
+                theoryTitle: "Теория және формулалар",
+                theoryText: "Қатты қызған денелердің берген жылу мөлшері аз қызған денелердің алған жылу мөлшеріне тең:",
+                theoryList1: "\\( Q = cm(t_2 - t_1) \\) — қызу",
+                theoryList2: "\\( Q = cm(t_1 - t_2) \\) — сууы",
+                constTitle: "Анықтамалық c, Дж/(кг·°C)",
+                constCol1: "Зат",
+                substances: { water: "Су", aluminum: "Алюминий", iron: "Темір", copper: "Мыс" },
+                practiceTitle: "Тәжірибе: Қадамдық шешім",
+                taskPrefix: "Есеп",
+                nextTaskBtn: "Келесі есеп",
+                showSolution: "Шешуін көрсету",
+                hideSolution: "Шешуін жасыру",
+                solutionTitle: "Толық шешімі:",
+                stepPrompt: "ҚАДАМ",
+                checkBtn: "Жауапты тексеру",
+                selectOption: "-- Таңдаңыз --",
+                correctMsg: "Дұрыс! Келесі қадамға өтеміз.",
+                incorrectMsg: "Қате бар. Қайта ойланып көріңіз!",
+                step1Title: "Шартты талдау",
+                step1Q: "Есепті мұқият оқыңыз. Бізге қандай шамалар БЕРІЛГЕН және нені ТАБУ КЕРЕК? Оларды белгілеңіз (қалғаны - артық).",
+                step2Title: "«Берілгенін» жазу",
+                step2Q: "Есептегі сандық мәндерді олардың физикалық белгілерімен сәйкестендіріңіз:",
+                step3Title: "Формуланы таңдау",
+                step3Q: "Дұрыс жылулық баланс теңдеуін таңдаңыз (\\( Q_{\\text{бер}} = Q_{\\text{ал}} \\)):",
+                step4Title: "Есептеу",
+                step4Q: "Мәндерді формулаға қойып, есептеңіз және дұрыс жауапты таңдаңыз:"
+            }
+        };
+
+        let currentLang = 'ru';
+        let taskCount = 0;
+        let currentTask = null;
+        let activeSteps = [];
+        let currentStepIndex = 0;
+
+        function showToast(msg, type = "error") {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `fixed top-20 right-4 sm:right-8 z-50 px-5 py-3 rounded-lg shadow-lg font-medium transition-all duration-300 transform ${type === 'error' ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'} translate-y-0 opacity-100`;
+            t.style.display = 'block';
+            setTimeout(() => {
+                t.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => { t.style.display = 'none'; t.classList.remove('opacity-0', '-translate-y-2'); }, 300);
+            }, 2500);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getRandomInt(min, max, step = 1) {
+            return Math.floor(Math.random() * ((max - min) / step + 1)) * step + min;
+        }
+
+        function updateUI() {
+            const ui = i18n[currentLang];
+            document.getElementById('ui-title').innerText = ui.title;
+            document.getElementById('ui-theoryTitle').innerText = ui.theoryTitle;
+            document.getElementById('ui-theoryText').innerText = ui.theoryText;
+            document.getElementById('ui-theoryList').innerHTML = `<li>${ui.theoryList1}</li><li>${ui.theoryList2}</li>`;
+            document.getElementById('ui-constantsTitle').innerText = ui.constTitle;
+            document.getElementById('ui-constCol1').innerText = ui.constCol1;
+            document.getElementById('ui-practiceTitle').innerText = ui.practiceTitle;
+            document.getElementById('ui-nextTaskBtn').innerText = ui.nextTaskBtn;
+            document.getElementById('ui-showSolution').innerText = ui.showSolution;
+            document.getElementById('ui-solutionTitle').innerText = ui.solutionTitle;
+            
+            let tbody = '';
+            for (const [key, val] of Object.entries(materials)) {
+                tbody += `<tr class="hover:bg-slate-50"><td class="px-4 py-2 sm:py-3 font-medium">${ui.substances[key]}</td><td class="px-4 py-2 sm:py-3 text-right">${val.c}</td></tr>`;
+            }
+            document.getElementById('ui-constantsBody').innerHTML = tbody;
+            
+            document.getElementById('task-counter').innerText = `${ui.taskPrefix} ${taskCount}`;
+            renderMath();
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.getElementById('lang-ru').className = lang === 'ru' ? 'px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium bg-white text-indigo-700 shadow' : 'px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium text-indigo-100 hover:text-white';
+            document.getElementById('lang-kk').className = lang === 'kk' ? 'px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium bg-white text-indigo-700 shadow' : 'px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-medium text-indigo-100 hover:text-white';
+            
+            updateUI();
+            if (taskCount > 0) {
+                // If a task exists, redraw it with the new language
+                // Note: To keep things simple in this fix, we just regenerate the task fully
+                // so the arrays and strings update cleanly.
+                generateNewTask();
+            }
+        }
+
+        function renderMath() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '\\(', right: '\\)', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        function generateNewTask() {
+            taskCount++;
+            document.getElementById('task-counter').innerText = `${i18n[currentLang].taskPrefix} ${taskCount}`;
+            document.getElementById('solution-box').classList.add('hidden');
+            document.getElementById('next-task-container').classList.add('hidden');
+            document.getElementById('btn-solution').innerHTML = `<svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> <span id="ui-showSolution">${i18n[currentLang].showSolution}</span>`;
+            
+            currentStepIndex = 0;
+            activeSteps = [];
+
+            const metals = ['aluminum', 'iron', 'copper'];
+            const metal = metals[Math.floor(Math.random() * metals.length)];
+            const uiSubst = i18n[currentLang].substances;
+            
+            // Generate valid physics values
+            let m1 = getRandomInt(1, 5, 1); // Water mass (1-5 kg)
+            let t1 = getRandomInt(10, 30, 5); // Water initial temp (10-30 C)
+            let m2 = getRandomInt(2, 8, 1) / 10; // Metal mass (0.2-0.8 kg)
+            let t2 = getRandomInt(80, 150, 10); // Metal initial temp (80-150 C)
+            
+            const c1 = materials.water.c;
+            const c2 = materials[metal].c;
+            
+            // Calculate real final temp t3
+            // c1*m1*(t3 - t1) = c2*m2*(t2 - t3)
+            let t3 = (c1*m1*t1 + c2*m2*t2) / (c1*m1 + c2*m2);
+            t3 = Math.round(t3 * 10) / 10; 
+
+            // Texts and labels
+            let t_waterMass = currentLang === 'ru' ? "Масса воды" : "Су массасы";
+            let t_waterT1 = currentLang === 'ru' ? "Нач. температура воды" : "Судың бас. температурасы";
+            let t_waterC = currentLang === 'ru' ? "Уд. теплоемкость воды" : "Судың меншікті жылу сыйымдылығы";
+            let t_metalMass = currentLang === 'ru' ? `Масса (${uiSubst[metal].toLowerCase()})` : `Массасы (${uiSubst[metal].toLowerCase()})`;
+            let t_metalT2 = currentLang === 'ru' ? "Нач. температура металла" : "Металдың бас. температурасы";
+            let t_metalC = currentLang === 'ru' ? "Уд. теплоемкость металла" : "Металдың мен. жылу сыйымдылығы";
+            let t_finalT3 = currentLang === 'ru' ? "Конечная температура" : "Соңғы температура";
+            
+            // Distractors
+            let d1 = currentLang === 'ru' ? "Объем сосуда" : "Ыдыстың көлемі";
+            let d2 = currentLang === 'ru' ? "Время нагрева" : "Қыздыру уақыты";
+            let d3 = currentLang === 'ru' ? "Плотность воды" : "Судың тығыздығы";
+            let d4 = currentLang === 'ru' ? "Уд. теплота плавления" : "Меншікті балқу жылуы";
+
+            // Task generation text
+            let taskText = currentLang === 'ru' ?
+                `В воду массой ${m1} кг, взятую при температуре ${t1} °C, опустили деталь из материала "${uiSubst[metal]}" массой ${m2} кг при температуре ${t2} °C. Найдите конечную температуру установившегося теплового равновесия.` :
+                `Массасы ${m1} кг, ${t1} °C температурадағы суға массасы ${m2} кг, ${t2} °C температурадағы "${uiSubst[metal]}" бөлшегі салынды. Жылулық тепе-теңдік орнағаннан кейінгі соңғы температураны табыңыз.`;
+            
+            document.getElementById('task-text').innerHTML = taskText;
+
+            // --- STEP 1: Checkboxes (What is given/needed, with distractors) ---
+            let allTerms = [t_waterMass, t_waterT1, t_waterC, t_metalMass, t_metalT2, t_metalC, t_finalT3, d1, d2, d3, d4];
+            let correctTerms = [t_waterMass, t_waterT1, t_waterC, t_metalMass, t_metalT2, t_metalC, t_finalT3];
+            
+            // Create shuffled objects
+            let s1Options = allTerms.map(t => ({ text: t, isCorrect: correctTerms.includes(t) }));
+            shuffleArray(s1Options);
+            
+            let s1CorrectIndices = [];
+            s1Options.forEach((opt, idx) => { if(opt.isCorrect) s1CorrectIndices.push(idx); });
+
+            activeSteps.push({
+                type: 'checkbox',
+                title: i18n[currentLang].step1Title,
+                question: i18n[currentLang].step1Q,
+                options: s1Options.map(o => o.text),
+                correct: s1CorrectIndices,
+                solved: false
+            });
+
+            // --- STEP 2: Match Variables ---
+            // Let's ask them to match 4 items to keep it readable on mobile
+            let s2Items = [`${m1} ${currentLang==='ru'?'кг':'кг'}`, `${t2} °C`, `${c1} Дж/(кг·°C)`, currentLang==='ru'?"? (Найти)":"? (Табу)"];
+            let s2CorrectVars = ["\\( m_1 \\)", "\\( t_2 \\)", "\\( c_1 \\)", "\\( t_3 \\)"];
+            
+            let allVars = ["\\( m_1 \\)", "\\( t_2 \\)", "\\( c_1 \\)", "\\( t_3 \\)", "\\( m_2 \\)", "\\( t_1 \\)", "\\( Q \\)"];
+            shuffleArray(allVars);
+            
+            // Find correct indices in the shuffled array
+            let s2CorrectIndices = s2CorrectVars.map(v => allVars.indexOf(v));
+
+            activeSteps.push({
+                type: 'match',
+                title: i18n[currentLang].step2Title,
+                question: i18n[currentLang].step2Q,
+                items: s2Items,
+                options: allVars,
+                correct: s2CorrectIndices,
+                solved: false
+            });
+
+            // --- STEP 3: MCQ Formula ---
+            let fCorrect = "\\( c_1 m_1 (t_3 - t_1) = c_2 m_2 (t_2 - t_3) \\)";
+            let fWrong1 = "\\( c_1 m_1 (t_1 - t_3) = c_2 m_2 (t_3 - t_2) \\)"; // signs flipped
+            let fWrong2 = "\\( c_1 m_1 t_1 = c_2 m_2 t_2 \\)"; // missing t3
+            let fWrong3 = "\\( c_1 m_1 (t_3 - t_2) = c_2 m_2 (t_3 - t_1) \\)"; // mixed up t1 and t2
+            
+            let fOptionsObj = [
+                { f: fCorrect, isC: true }, { f: fWrong1, isC: false }, 
+                { f: fWrong2, isC: false }, { f: fWrong3, isC: false }
+            ];
+            shuffleArray(fOptionsObj);
+            let s3CorrectIndex = fOptionsObj.findIndex(o => o.isC);
+
+            activeSteps.push({
+                type: 'mcq',
+                title: i18n[currentLang].step3Title,
+                question: i18n[currentLang].step3Q,
+                options: fOptionsObj.map(o => o.f),
+                correct: s3CorrectIndex,
+                solved: false
+            });
+
+            // --- STEP 4: MCQ Calculation ---
+            let w1 = Math.round((t3 + 5) * 10) / 10;
+            let w2 = Math.round((t3 - 3.5) * 10) / 10;
+            let w3 = Math.round((c1*m1*t1 + c2*m2*t2) / (c1*m1 - c2*m2) * 10)/10; // math error distractor
+            if (w3 < 0 || w3 > 200) w3 = Math.round((t3 + 12)*10)/10;
+
+            let aOptionsObj = [
+                { a: `${t3} °C`, isC: true }, { a: `${w1} °C`, isC: false },
+                { a: `${w2} °C`, isC: false }, { a: `${w3} °C`, isC: false }
+            ];
+            shuffleArray(aOptionsObj);
+            let s4CorrectIndex = aOptionsObj.findIndex(o => o.isC);
+
+            activeSteps.push({
+                type: 'mcq',
+                title: i18n[currentLang].step4Title,
+                question: i18n[currentLang].step4Q,
+                options: aOptionsObj.map(o => o.a),
+                correct: s4CorrectIndex,
+                solved: false
+            });
+
+            // Set Full Solution Data
+            currentTask = {
+                solutionText: `
+                    <p><b>1. ${currentLang === 'ru' ? "Дано:" : "Берілгені:"}</b></p>
+                    <p>\\( m_1 = ${m1} \\) кг (вода) <br> 
+                       \\( t_1 = ${t1} \\) °C <br> 
+                       \\( c_1 = ${c1} \\) Дж/(кг·°C)</p>
+                    <p>\\( m_2 = ${m2} \\) кг (${uiSubst[metal].toLowerCase()}) <br> 
+                       \\( t_2 = ${t2} \\) °C <br> 
+                       \\( c_2 = ${c2} \\) Дж/(кг·°C)</p>
+                    <p><b>${currentLang === 'ru' ? "Найти:" : "Табу керек:"}</b> \\( t_3 \\)</p>
+                    <hr class="my-3 border-slate-200">
+                    <p><b>2. ${currentLang === 'ru' ? "Уравнение теплового баланса:" : "Жылулық баланс теңдеуі:"}</b></p>
+                    <p>\\( Q_{\\text{пол}} = Q_{\\text{отд}} \\)</p>
+                    <p>Вода получает теплоту: \\( Q_1 = c_1 m_1 (t_3 - t_1) \\)</p>
+                    <p>Металл отдает теплоту: \\( Q_2 = c_2 m_2 (t_2 - t_3) \\)</p>
+                    <p>\\( c_1 m_1 (t_3 - t_1) = c_2 m_2 (t_2 - t_3) \\)</p>
+                    <hr class="my-3 border-slate-200">
+                    <p><b>3. ${currentLang === 'ru' ? "Подстановка и расчет:" : "Орнына қою және есептеу:"}</b></p>
+                    <p>\\( ${c1} \\cdot ${m1} \\cdot (t_3 - ${t1}) = ${c2} \\cdot ${m2} \\cdot (${t2} - t_3) \\)</p>
+                    <p>\\( ${c1*m1}t_3 - ${c1*m1*t1} = ${c2*m2*t2} - ${c2*m2}t_3 \\)</p>
+                    <p>\\( (${c1*m1} + ${c2*m2})t_3 = ${c1*m1*t1} + ${c2*m2*t2} \\)</p>
+                    <p>\\( t_3 = \\frac{${c1*m1*t1 + c2*m2*t2}}{${c1*m1 + c2*m2}} \\approx ${t3} \\text{ °C} \\)</p>
+                `
+            };
+
+            renderGuidedSteps();
+        }
+
+        function renderGuidedSteps() {
+            const container = document.getElementById('guided-steps-container');
+            container.innerHTML = '';
+            const stepWord = i18n[currentLang].stepPrompt;
+
+            activeSteps.forEach((step, index) => {
+                if (index > currentStepIndex) return; 
+
+                const stepDiv = document.createElement('div');
+                stepDiv.className = `bg-white rounded-xl shadow-sm border p-4 sm:p-6 fade-in transition-all ${index === currentStepIndex ? 'border-indigo-400 ring-2 ring-indigo-50' : 'border-slate-200 opacity-90'}`;
+
+                let html = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b border-slate-100 gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md whitespace-nowrap">${stepWord} ${index + 1} / ${activeSteps.length}</span>
+                            <span class="font-bold text-slate-800 text-base sm:text-lg">${step.title}</span>
+                        </div>
+                        ${step.solved ? '<span class="text-xs font-bold text-emerald-600 flex items-center gap-1.5 bg-emerald-50 px-2 py-1.5 rounded-md"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> ' + (currentLang==='ru'?'Выполнено':'Орындалды') + '</span>' : ''}
+                    </div>
+                    <p class="text-slate-600 font-medium mb-4 sm:mb-5 text-sm sm:text-base">${step.question}</p>
+                `;
+
+                if (step.type === 'checkbox') {
+                    html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-5">`;
+                    step.options.forEach((opt, idx) => {
+                        let isChecked = step.userSelections && step.userSelections.includes(idx) ? 'checked' : '';
+                        let disabled = step.solved ? 'disabled' : '';
+                        let labelClass = "flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-indigo-50/50 cursor-pointer";
+                        
+                        if (step.solved) {
+                            labelClass = step.correct.includes(idx)
+                                ? "flex items-start gap-3 p-3 border-2 border-emerald-400 bg-emerald-50 rounded-lg opacity-90 cursor-default"
+                                : "flex items-start gap-3 p-3 border border-slate-200 bg-slate-50 opacity-40 cursor-default";
+                        }
+                        
+                        html += `<label class="${labelClass}">
+                            <input type="checkbox" id="step${index}_cb${idx}" value="${idx}" class="mt-0.5 w-6 h-6 sm:w-5 sm:h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 flex-shrink-0" ${isChecked} ${disabled}>
+                            <span class="text-slate-700 font-medium leading-tight text-sm">${opt}</span>
+                        </label>`;
+                    });
+                    html += `</div>`;
+                    if (!step.solved) {
+                        html += `<button onclick="checkStepCB(${index})" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3 rounded-lg shadow-sm transition-all focus:ring-4 focus:ring-indigo-100 active:scale-95 text-base">${i18n[currentLang].checkBtn}</button>`;
+                    }
+                } 
+                else if (step.type === 'match') {
+                    html += `<div class="flex flex-col gap-2 mb-4">`;
+                    step.items.forEach((item, itemIdx) => {
+                        let selectClass = step.solved ? "border-emerald-400 bg-emerald-50 text-emerald-800 font-bold" : "border-slate-300 bg-slate-50";
+                        html += `<div class="flex items-center justify-between border border-slate-100 p-3 rounded-lg bg-white gap-3">
+                            <span class="font-bold text-slate-800 text-sm sm:text-base w-1/2">${item}</span>
+                            <div class="flex items-center gap-2 w-1/2">
+                                <span class="text-slate-400 font-light hidden sm:block">=</span>
+                                <select id="step${index}_sel${itemIdx}" class="w-full p-2.5 rounded-lg border shadow-sm outline-none text-sm ${selectClass}" ${step.solved ? 'disabled' : ''}>
+                                    <option value="">${i18n[currentLang].selectOption}</option>`;
+                        step.options.forEach((opt, optIdx) => {
+                            let selected = (step.userSelections && step.userSelections[itemIdx] == optIdx) ? 'selected' : '';
+                            html += `<option value="${optIdx}" ${selected}>${opt}</option>`;
+                        });
+                        html += `</select></div></div>`;
+                    });
+                    html += `</div>`;
+                    if (!step.solved) {
+                        html += `<button onclick="checkStepMatch(${index})" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3 rounded-lg shadow-sm transition-all active:scale-95 text-base">${i18n[currentLang].checkBtn}</button>`;
+                    }
+                } 
+                else if (step.type === 'mcq') {
+                    html += `<div class="grid grid-cols-1 ${index === 2 ? 'sm:grid-cols-1' : 'sm:grid-cols-2'} gap-3">`;
+                    step.options.forEach((opt, optIdx) => {
+                        let btnClass = "border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-slate-700 p-3 sm:p-4 rounded-lg text-sm sm:text-base text-left font-medium transition-all shadow-sm bg-white active:scale-95";
+                        let disabledAttr = "";
+
+                        if (step.solved) {
+                            disabledAttr = "disabled";
+                            if (optIdx === step.correct) {
+                                btnClass = "border-2 border-emerald-400 bg-emerald-50 text-emerald-800 p-3 sm:p-4 rounded-lg text-sm sm:text-base text-left font-bold shadow-sm";
+                            } else {
+                                btnClass = "border border-slate-100 bg-slate-50 text-slate-400 opacity-50 p-3 sm:p-4 rounded-lg text-sm sm:text-base text-left";
+                            }
+                        }
+                        html += `<button onclick="checkStepMCQ(${index}, ${optIdx})" ${disabledAttr} class="${btnClass}"><div class="math-scroll">${opt}</div></button>`;
+                    });
+                    html += `</div>`;
+                }
+
+                stepDiv.innerHTML = html;
+                container.appendChild(stepDiv);
+            });
+            
+            renderMath();
+            
+            // Scroll to the active step if it's not the first one
+            if (currentStepIndex > 0 && currentStepIndex < activeSteps.length) {
+                setTimeout(() => {
+                    container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            }
+        }
+
+        function checkStepCB(index) {
+            const step = activeSteps[index];
+            let userSels = [];
+            step.options.forEach((_, idx) => {
+                if (document.getElementById(`step${index}_cb${idx}`).checked) userSels.push(idx);
+            });
+            
+            const isCorrect = userSels.length === step.correct.length && userSels.every(v => step.correct.includes(v));
+            
+            if (isCorrect) {
+                showToast(i18n[currentLang].correctMsg, 'success');
+                step.solved = true;
+                step.userSelections = userSels;
+                currentStepIndex++;
+                renderGuidedSteps();
+            } else {
+                showToast(i18n[currentLang].incorrectMsg, 'error');
+            }
+        }
+
+        function checkStepMatch(index) {
+            const step = activeSteps[index];
+            let userSels = [];
+            let allFilled = true;
+            
+            step.items.forEach((_, idx) => {
+                let val = document.getElementById(`step${index}_sel${idx}`).value;
+                if (val === "") allFilled = false;
+                userSels.push(parseInt(val));
+            });
+
+            if (!allFilled) {
+                showToast(currentLang === 'ru' ? "Заполните все поля!" : "Барлық өрістерді толтырыңыз!", 'error');
+                return;
+            }
+
+            const isCorrect = userSels.every((v, i) => v === step.correct[i]);
+            if (isCorrect) {
+                showToast(i18n[currentLang].correctMsg, 'success');
+                step.solved = true;
+                step.userSelections = userSels;
+                currentStepIndex++;
+                renderGuidedSteps();
+            } else {
+                showToast(i18n[currentLang].incorrectMsg, 'error');
+            }
+        }
+
+        function checkStepMCQ(stepIndex, optIndex) {
+            const step = activeSteps[stepIndex];
+            if (step.correct === optIndex) {
+                showToast(i18n[currentLang].correctMsg, 'success');
+                step.solved = true;
+                currentStepIndex++;
+                renderGuidedSteps();
+                
+                // If it was the last step, show completion controls
+                if (currentStepIndex === activeSteps.length) {
+                    document.getElementById('next-task-container').classList.remove('hidden');
+                    document.getElementById('solution-text').innerHTML = currentTask.solutionText;
+                    renderMath();
+                    setTimeout(() => {
+                        document.getElementById('next-task-container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 200);
+                }
+            } else {
+                showToast(i18n[currentLang].incorrectMsg, 'error');
+            }
+        }
+
+        function toggleSolution() {
+            const box = document.getElementById('solution-box');
+            const btn = document.getElementById('btn-solution');
+            const span = document.getElementById('ui-showSolution');
+            
+            if (box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                span.innerText = i18n[currentLang].hideSolution;
+                btn.classList.replace('bg-slate-100', 'bg-indigo-100');
+                btn.classList.replace('text-slate-700', 'text-indigo-800');
+                box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                box.classList.add('hidden');
+                span.innerText = i18n[currentLang].showSolution;
+                btn.classList.replace('bg-indigo-100', 'bg-slate-100');
+                btn.classList.replace('text-indigo-800', 'text-slate-700');
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('ui-constantsBody').innerHTML = ''; // Clear template
+            setLang('ru');
+            generateNewTask(); // Добавлена генерация первой задачи при старте
+        });
+    </script>
+</body>
+</html>
